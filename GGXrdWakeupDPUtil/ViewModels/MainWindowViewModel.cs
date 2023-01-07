@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Configuration;
+using System.Security.Cryptography;
 using System.Text;
 using System.Windows;
 using System.Windows.Forms;
@@ -32,8 +33,6 @@ namespace GGXrdWakeupDPUtil.ViewModels
                 this.OnPropertyChanged();
             }
         }
-
-
 
         private string _dummyName;
         public string DummyName
@@ -402,30 +401,46 @@ namespace GGXrdWakeupDPUtil.ViewModels
         }
         #endregion
 
-        #region Import
+        #region ImportExport
 
-        private int _importSlotNumber = 1;
-        public int ImportSlotNumber
+        private int _importExportSlotNumber = 1;
+        public int ImportExportSlotNumber
         {
-            get => _importSlotNumber;
+            get => _importExportSlotNumber;
             set
             {
-                _importSlotNumber = value;
+                _importExportSlotNumber = value;
                 this.OnPropertyChanged();
             }
         }
 
-        #endregion
-
-        #region Export
-
-        private int _exportSlotNumber = 1;
-        public int ExportSlotNumber
+        private string _importExportInput;
+        public string ImportExportInput
         {
-            get => _exportSlotNumber;
+            get => _importExportInput;
             set
             {
-                _exportSlotNumber = value;
+                _importExportInput = value;
+                SlotInput slotInput = new SlotInput(this.ImportExportInput);
+                this.IsImportExportInputValid = string.IsNullOrEmpty(this.ImportExportInput) || slotInput.IsValid;
+
+                if (!slotInput.IsValid)
+                {
+                    this.WakeupReversalErrorMessage = "Invalid Input";
+                }
+
+                this.OnPropertyChanged();
+                this.OnPropertyChanged(nameof(WakeupReversalErrorVisibility));
+            }
+        }
+
+        private bool _isImportExportInputValid;
+        public bool IsImportExportInputValid
+        {
+            get => _isImportExportInputValid;
+            set
+            {
+                _isImportExportInputValid = value;
                 this.OnPropertyChanged();
             }
         }
@@ -463,7 +478,7 @@ namespace GGXrdWakeupDPUtil.ViewModels
         }
         #endregion
 
-        #region StopReversalCommand
+        #region StopWakeupReversalCommand
         private RelayCommand _stopWakeupReversalCommand;
 
         public RelayCommand StopWakeupReversalCommand => this._stopWakeupReversalCommand ?? (this._stopWakeupReversalCommand = new RelayCommand(this.StopWakeupReversal, this.CanStopWakeupReversal));
@@ -497,7 +512,7 @@ namespace GGXrdWakeupDPUtil.ViewModels
         }
         #endregion
 
-        #region StopReversalCommand
+        #region StopBlockstunReversalCommand
         private RelayCommand _stopBlockstunReversalCommand;
 
         public RelayCommand StopBlockstunReversalCommand => this._stopBlockstunReversalCommand ?? (this._stopBlockstunReversalCommand = new RelayCommand(this.StopBlockstunReversal, this.CanStopBlockstunReversal));
@@ -567,8 +582,6 @@ namespace GGXrdWakeupDPUtil.ViewModels
             this.UpdateProcess(true);
         }
 
-
-
         #endregion
 
         #region ImportCommand
@@ -588,18 +601,30 @@ namespace GGXrdWakeupDPUtil.ViewModels
                 var bytes = this._reversalTool.ReadInputFile(ofd.FileName);
                 SlotInput slotInput = new SlotInput(bytes);
 
-                bool success = slotInput.IsValid && this._reversalTool.SetInputInSlot(this.ImportSlotNumber, slotInput);
+                string input = this._reversalTool.TranslateFromFile(ofd.FileName);
 
+                if (string.IsNullOrEmpty(input))
+                {
+                    LogManager.Instance.WriteLine($"Failed to import inputs from file {ofd.FileName} to Wakeup Reversal");
+                }
+                else
+                {
+                    this.ImportExportInput = input;
+
+                    LogManager.Instance.WriteLine($"Inputs imported from file {ofd.FileName} to Wakeup Reversal");
+                }
+
+                bool success = slotInput.IsValid && this._reversalTool.SetInputInSlot(this.ImportExportSlotNumber, slotInput);
 
                 if (success)
                 {
-                    LogManager.Instance.WriteLine($"Inputs imported from file {ofd.FileName} to slot number {this.ImportSlotNumber}");
+                    LogManager.Instance.WriteLine($"Inputs imported from file {ofd.FileName} to slot number {this.ImportExportSlotNumber}");
                     MessageBox.Show("Import succeed");
                     this._reversalTool.BringWindowToFront();
                 }
                 else
                 {
-                    LogManager.Instance.WriteLine($"Failed to import Inputs from file {ofd.FileName} to slot number {this.ImportSlotNumber}");
+                    LogManager.Instance.WriteLine($"Failed to import Inputs from file {ofd.FileName} to slot number {this.ImportExportSlotNumber}");
                     MessageBox.Show("Import failed");
                 }
             }
@@ -630,25 +655,45 @@ namespace GGXrdWakeupDPUtil.ViewModels
 
             if (dialogResult == DialogResult.OK)
             {
-                byte[] input = this._reversalTool.ReadInputInSlot(this.ExportSlotNumber);
+                byte[] input = this._reversalTool.ReadInputInSlot(this.ImportExportSlotNumber);
 
                 var success = this._reversalTool.WriteInputFile(svd.FileName, input);
-
+                this.ImportExportInput = this._reversalTool.TranslateFromFile(svd.FileName);
 
                 if (success)
                 {
-                    LogManager.Instance.WriteLine($"Inputs exported from slot number {this.ExportSlotNumber} to file {svd.FileName}");
+                    LogManager.Instance.WriteLine($"Inputs exported from slot number {this.ImportExportSlotNumber} to file {svd.FileName}");
                     MessageBox.Show("Export succeed");
                 }
                 else
                 {
-                    LogManager.Instance.WriteLine($"Failed to export inputs from slot number {this.ExportSlotNumber} to file {svd.FileName}");
+                    LogManager.Instance.WriteLine($"Failed to export inputs from slot number {this.ImportExportSlotNumber} to file {svd.FileName}");
                     MessageBox.Show("Export failed");
                 }
             }
         }
 
         private bool ExportCommandCanExecute()
+        {
+            return
+                !this.IsWakeupReversalStarted &&
+                !this.IsBlockstunReversalStarted &&
+                !this.IsRandomBurstStarted;
+        }
+        #endregion
+
+        #region OverwriteCommand
+
+        private RelayCommand _overwriteCommand;
+        public RelayCommand OverwriteCommand => _overwriteCommand ?? (_overwriteCommand = new RelayCommand(OverwriteCommandExecute, OverwriteCommandCanExecute));
+
+        private void OverwriteCommandExecute()
+        {
+            SlotInput slotInput = new SlotInput(this.ImportExportInput);
+            this._reversalTool.SetInputInSlot(this.ImportExportSlotNumber, slotInput);
+        }
+
+        private bool OverwriteCommandCanExecute()
         {
             return
                 !this.IsWakeupReversalStarted &&
@@ -800,7 +845,6 @@ namespace GGXrdWakeupDPUtil.ViewModels
         #endregion
 
         #endregion
-
 
         #region MyRegion
 

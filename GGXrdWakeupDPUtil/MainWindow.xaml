@@ -64,7 +64,7 @@
                         <TextBox Grid.Row="2" Text="{Binding WakeupReversalInput, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsWakeupReversalStarted, Converter={StaticResource AntiBooleanValueConverter}}" />
                         <UniformGrid Grid.Row="3" Height="30" Columns="2" Margin="0,10,0,0">
                             <Button Margin="0,0,10,0" Content="Import" Command="{Binding WakeupTranslateFromFileCommand, Mode=OneWay}"/>
-                            <Button Margin="10,0,0,0" Content="Export" Command="{Binding WakeupTranslateIntoFileCommand, Mode=OneWay}"/>
+                            <Button Margin="10,0,0,0" Content="Export" Command="{Binding WakeupTranslateIntoFileCommand, Mode=OneWay}" Height="30" VerticalAlignment="Top"/>
                         </UniformGrid>
                         <TextBlock Grid.Row="4" Text="{Binding WakeupReversalErrorMessage}" Foreground="Red" Visibility="{Binding WakeupReversalErrorVisibility, Mode=OneWay}" />
                         <CheckBox Grid.Row="5" Content="Play Reversal after Wallsplat" HorizontalAlignment="Center" IsChecked="{Binding PlayReversalAfterWallsplat}" IsEnabled="{Binding IsWakeupReversalStarted, Converter={StaticResource AntiBooleanValueConverter}}"/>
@@ -160,33 +160,34 @@
                 <TabItem Header="Import/Export">
                     <TabItem.IsEnabled>
                         <MultiBinding Converter="{StaticResource FeatureRunningValueConverter}">
-                            <Binding Path="IsWakeupReversalStarted"/>
                             <Binding Path="IsBlockstunReversalStarted"/>
                             <Binding Path="IsRandomBurstStarted"/>
                         </MultiBinding>
                     </TabItem.IsEnabled>
-                    <UniformGrid Rows="2">
-                        <GroupBox Header="Import">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <Button HorizontalAlignment="Center" VerticalAlignment="Center" Command="{Binding ImportCommand, Mode=OneWay}">Import</Button>
-                                <Controls:SlotsControl Grid.Row="1" GroupName="Import into slot :" SlotNumber="{Binding ImportSlotNumber}"/>
-                            </Grid>
-                        </GroupBox>
-                        <GroupBox Header="Export">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <Button HorizontalAlignment="Center" VerticalAlignment="Center" Command="{Binding ExportCommand, Mode=OneWay}">Export</Button>
-                                <Controls:SlotsControl Grid.Row="1" GroupName="Slot to export :" SlotNumber="{Binding ExportSlotNumber}"/>
-                            </Grid>
-                        </GroupBox>
-                    </UniformGrid>
+                    <Grid Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="Import/Export" HorizontalAlignment="Center" />
+                        <TextBlock Grid.Row="1" TextWrapping="Wrap" Text="{Binding DummyName, ConverterParameter=Current Dummy : \{0\}, Converter={StaticResource InterpolarConverter}}" HorizontalAlignment="Center" />
+                        <TextBox Grid.Row="2" Text="{Binding ImportExportInput, UpdateSourceTrigger=PropertyChanged}" />
+                        <UniformGrid Grid.Row="3" Height="30" Columns="3" Margin="0,10,0,0">
+                            <Button Margin="0,0,10,0" Content="Import" Command="{Binding ImportCommand, Mode=OneWay}"/>
+                            <Button Margin="10,0,10,0" Content="Export" Command="{Binding ExportCommand, Mode=OneWay}"/>
+                            <Button Margin="10,0,0,0" Content="Overwrite" Command="{Binding OverwriteCommand, Mode=OneWay}"/>
+                        </UniformGrid>
+                        <TextBlock Grid.Row="4" Text="{Binding WakeupReversalErrorMessage}" Foreground="Red" Visibility="{Binding WakeupReversalErrorVisibility, Mode=OneWay}" />
+                        <Controls:SlotsControl Grid.Row="9" GroupName="Import/Export into slot :" SlotNumber="{Binding ImportExportSlotNumber}"/>
+                    </Grid>
                 </TabItem>
                 <TabItem Header="Log">
                     <DockPanel>
