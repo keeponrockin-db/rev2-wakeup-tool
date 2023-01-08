@@ -308,7 +308,7 @@ namespace GGXrdWakeupDPUtil.Library
                     ushort item = (ushort)((byte.MaxValue + 1) * inputs[i] + inputs[i - 1]);
 
                     string value = this.SingleInputParse(item, isP2);
-                    string previousValue = values.Count > 0 ? values.Last() : "";
+                    string previousValue = values.Count > 0 ? values.Last() : null;
 
                     if (value == previousValue)
                     {
@@ -320,6 +320,7 @@ namespace GGXrdWakeupDPUtil.Library
                         {
                             values[values.Count - 1] = $"{previousValue}*{repeatedValueCount}";
                             repeatedValueCount = 1;
+                            values.Add(value);
                         }
                         else
                         {
