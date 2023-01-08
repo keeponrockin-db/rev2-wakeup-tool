@@ -82,7 +82,7 @@ namespace GGXrdWakeupDPUtil.Library
                 var repeater = match.Groups[3].Value;
                 if (repeater != "")
                 {
-                    for (var i = int.Parse(repeater); i >= 0; i--)
+                    for (var i = int.Parse(repeater); i > 0; i--)
                     {
                         splitText.Add(singleInput);
                     }
