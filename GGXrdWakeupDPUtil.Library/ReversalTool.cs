@@ -328,6 +328,11 @@ namespace GGXrdWakeupDPUtil.Library
                     }
                 }
 
+                if (repeatedValueCount > 1)
+                {
+                    values[values.Count - 1] = $"{values.Last()}*{repeatedValueCount}";
+                }
+
                 return values.Aggregate((a, b) => $"{a},{b}");
             }
             catch (Exception e)
