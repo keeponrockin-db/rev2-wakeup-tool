@@ -301,19 +301,34 @@ namespace GGXrdWakeupDPUtil.Library
                 List<string> values = new List<string>();
 
                 bool isP2 = inputs[0] == 1;
+                int repeatedValueCount = 1;
 
                 for (int i = 9; i < inputs.Length; i += 2)
                 {
                     ushort item = (ushort)((byte.MaxValue + 1) * inputs[i] + inputs[i - 1]);
 
                     string value = this.SingleInputParse(item, isP2);
+                    string previousValue = values.Count > 0 ? values.Last() : "";
 
-                    values.Add(value);
-
+                    if (value == previousValue)
+                    {
+                        repeatedValueCount++;
+                    }
+                    else
+                    {
+                        if (repeatedValueCount > 1)
+                        {
+                            values[values.Count - 1] = $"{previousValue}*{repeatedValueCount}";
+                            repeatedValueCount = 1;
+                        }
+                        else
+                        {
+                            values.Add(value);
+                        }
+                    }
                 }
 
                 return values.Aggregate((a, b) => $"{a},{b}");
-
             }
             catch (Exception e)
             {

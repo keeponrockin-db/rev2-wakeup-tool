@@ -185,7 +185,6 @@
                             <Button Margin="10,0,10,0" Content="Export" Command="{Binding ExportCommand, Mode=OneWay}"/>
                             <Button Margin="10,0,0,0" Content="Overwrite" Command="{Binding OverwriteCommand, Mode=OneWay}"/>
                         </UniformGrid>
-                        <TextBlock Grid.Row="4" Text="{Binding WakeupReversalErrorMessage}" Foreground="Red" Visibility="{Binding WakeupReversalErrorVisibility, Mode=OneWay}" />
                         <Controls:SlotsControl Grid.Row="9" GroupName="Import/Export into slot :" SlotNumber="{Binding ImportExportSlotNumber}"/>
                     </Grid>
                 </TabItem>

@@ -72,9 +72,29 @@ namespace GGXrdWakeupDPUtil.Library
 
             var text = whitespaceRegex.Replace(input, "");
 
-            string[] splitText = text.Split(FrameDelimiter);
+            var splitText = new List<string>();
 
-            return splitText.ToList();
+            Regex repeaterRegex = new Regex(@"(!?\w+)(\*(\d+))?(,|$)");
+            var match = repeaterRegex.Match(text);
+            while (match.Success)
+            {
+                var singleInput = match.Groups[1].Value;
+                var repeater = match.Groups[3].Value;
+                if (repeater != "")
+                {
+                    for (var i = int.Parse(repeater); i >= 0; i--)
+                    {
+                        splitText.Add(singleInput);
+                    }
+                }
+                else
+                {
+                    splitText.Add(singleInput);
+                }
+                match = match.NextMatch();
+            }
+
+            return splitText;
         }
 
         private IList<ushort> GetInputShorts(IEnumerable<string> inputList)
